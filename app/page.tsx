@@ -15,7 +15,6 @@ export default function Home() {
 
 async function sendMessage() {
     try {
-      setLoading(true);
       appendUserMessage(userInput); // Append the user message to the conversation
       setUserInput(""); // Clear the input field after sending the message
 
@@ -76,17 +75,20 @@ async function sendMessage() {
 
         {/* Conditionally render the story */}
         {!loading && conversation.length > 0 && (
-          <div className="flex flex-col items-center justify-center h-1/2">
+          // <div className="flex flex-col items-center justify-center h-1/2">
             <div className="border border-green-700 rounded p-4 mt-4 w-80">
               {conversation.map((message, index) => (
-                <div key={index} className={`text-${message.role === 'user' ? 'blue' : 'green'}-700`}>
+                <div 
+                  key={index} 
+                  className={`text-${message.role === 'user' ? 'blue' : 'green'}-700 ${message.role === 'user' ? 'text-right' : 'text-left'}`}
+                >
                   <ReactMarkdown>
-                    {message.content}
+                  {message.content}
                   </ReactMarkdown>
                 </div>
               ))}
             </div>
-          </div>
+          // </div>
         )}
 
         {/* User input and button */}
