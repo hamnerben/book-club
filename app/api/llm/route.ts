@@ -10,9 +10,13 @@ const client = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
 export async function GET() {
   const response = await client.responses.create({
       model: "gpt-4o",
-      input: "Write a one-sentence bedtime story."
+      input: [
+        {role: "user", content: "Give me an idea for a woodworking project."},
+        {role: "assistant", content: "How about a wooden elephant?"},
+        {role: "user", content: "Tell me a story if that project magically came to life."},
+      ]
   });
-  return NextResponse.json({ story: response.output_text });
+  return NextResponse.json({ story: response});
 }
 
 // recive a message from the client and return a response

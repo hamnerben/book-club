@@ -3,19 +3,20 @@ import Image from "next/image";
 import { useState } from "react";
 import Icon from '@mdi/react';
 import { mdiArrowUp } from '@mdi/js';
+import { marked }  from 'marked';
+import ReactMarkdown  from 'react-markdown'
 
 export default function Home() {
-  const [story, setStory] = useState("");
+  const [conversation, setConversation] = useState<{ role: string; content: string }[]>([]);
   const [userInput, setUserInput] = useState("");
   const [loading, setLoading] = useState(false);
-
+  
   
 
 async function sendMessage() {
     try {
       setLoading(true);
-      
-      const message = userInput;
+      appendUserMessage(userInput); // Append the user message to the conversation
       setUserInput(""); // Clear the input field after sending the message
 
       const response = await fetch('/api/llm', {
@@ -27,12 +28,28 @@ async function sendMessage() {
       });
 
       const data = await response.json();
-      setStory(data.content);
-    } catch (error) {
+      appendAssistantMessage(data.content); // Append the assistant's response to the conversation
+    } 
+    catch (error) {
       console.error('Error:', error);
-    } finally {
+    } 
+    finally {
       setLoading(false);
     }
+  }
+
+  function appendUserMessage(message: string) {
+    setConversation((prev) => [
+      ...prev,
+      { role: "user", content: message },
+    ]);
+  }
+
+  function appendAssistantMessage(message: string) {
+    setConversation((prev) => [
+      ...prev,
+      { role: "assistant", content: message },
+    ]);
   }
   
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -58,11 +75,21 @@ async function sendMessage() {
         )}
 
         {/* Conditionally render the story */}
-        {!loading && story && (
+        {!loading && conversation.length > 0 && (
           <div className="flex flex-col items-center justify-center h-1/2">
-            <h2 className="text-green-700 text-3xl font-mono">{story}</h2>
+            <div className="border border-green-700 rounded p-4 mt-4 w-80">
+              {conversation.map((message, index) => (
+                <div key={index} className={`text-${message.role === 'user' ? 'blue' : 'green'}-700`}>
+                  <ReactMarkdown>
+                    {message.content}
+                  </ReactMarkdown>
+                </div>
+              ))}
+            </div>
           </div>
         )}
+
+        {/* User input and button */}
         <div className="flex flex-row items-center">
           {/* user input */}
           <input
@@ -71,7 +98,7 @@ async function sendMessage() {
             onChange={(e) => setUserInput(e.target.value)}
             onKeyDown={handleKeyDown} // Add the keydown event handler
             placeholder="Enter a prompt for your story..."
-            className="border border-green-700 text-green-700 rounded py-2 px-4 mb-4 w-80"
+            className="border border-green-700 text-blue-700 rounded py-2 px-4 mb-4 w-80"
           />
           {/* Button, but disable it when loading */}
           <button
